@@ -1,2 +1,13 @@
-
+import: To import packages
 type(): To get the type of a variable. Very handy to know the flow of a program
+""" COMMENT """: To comment a multiple lines
+def FUNCTION(args): : Create a functions with the arguments
+os.path.isdir(str): Will return a boolean if a directory exists.
+os.makedirs(str): Will create the path of directories
+os.path.join(path1,path2) : Joins two pathes together to make a file path (It will take care of the /)
+urllib.request.urlretrieve(URLPATH,FilePathtosaveto) : This will download a file from the path specified and save it to the directory specified. 
+#Dealing with TAR
+variable = tarfile.open(PATHTOtarfile) : This will open the tarfile
+variable.extractall(path=PATH) : This will extract the tar file in the specified path
+variable.close() : This will close the TAR file program
+
