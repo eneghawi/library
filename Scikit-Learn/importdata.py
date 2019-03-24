@@ -130,3 +130,6 @@ This will work if we ensure that the new data will get appended at the end of th
 A more stable feature is to use the some of the attributes that we know that are unique and they don't change '
 
 ""
+def load_housing_data(housing_path=HOUSING_PATH)
+    csv_path = os.path.join(housing_path,"housing.csv")
+    return pd.read_csv(csv_path)
