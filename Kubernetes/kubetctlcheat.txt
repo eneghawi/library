@@ -27,6 +27,7 @@ List all container images:			list-all-images.sh
 Kubectl apply a folder of yaml files:		kubectl apply -R -f .
 Get system conf via configmap:			kubectl -n kube-system get cm kubeadm-config -o yaml
 Get services sorted by name:			kubectl get services –sort-by=.metadata.name
+Get the master or the worked services:		kubectl get componentstatus
 Get resources with json output:			kubectl get pods --all-namespaces -o json
 Get pods sorted by restart count:		kubectl get pods –sort-by=’.status.containerStatuses[0].restartCount’
 Get deployment yaml:				kubectl -n denny-websites get deployment mysql -o yaml
@@ -89,6 +90,7 @@ Get pod info:					kubectl describe pod/srv-mysql-server
 List all pods with labels:			kubectl get pods --show-labels
 List all unhealthy pods:			kubectl get pods –field-selector=status.phase!=Running –all-namespaces
 List running pods:				kubectl get pods –field-selector=status.phase=Running
+List running pods with specific namespace:	kubectl get pods –field-selector=status.phase=Running,metadata.namespace=default
 Get Pod initContainer status:			kubectl get pod --template '{{.status.initContainerStatuses}}' <pod-name>
 kubectl run command:				kubectl exec -it -n “$ns” “$podname” – sh -c “echo $msg >>/dev/err.log”
 Watch pods:					kubectl get pods -n wordpress --watch
