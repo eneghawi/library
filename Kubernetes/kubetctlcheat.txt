@@ -7,7 +7,7 @@ kubeconfig skip tls verification		skip-tls-verify.md
 Watch pods:					kubectl get pods -n wordpress --watch
 Validate yaml file with dry run:		kubectl create --dry-run --validate -f pod-dummy.yaml
 Use minikube dockerd in your laptop:		eval $(minikube docker-env), No need to push docker hub any more
-Ubuntu install kubectl	=”deb https://apt.kubernetes.io/ kubernetes-xenial main”=
+Ubuntu install kubectl:				deb https://apt.kubernetes.io/ kubernetes-xenial main=
 Start a temporary pod for testing:		kubectl run --rm -i -t --image=alpine test-$RANDOM -- sh
 Show nodes with labels:				kubectl get nodes --show-labels
 Set namespace preference:			kubectl config set-context <context_name> --namespace=<ns_name>
@@ -58,7 +58,10 @@ Delete resources under a namespace:		kubectl -n my-ns delete po,svc --all
 Delete persist volumes by labels:		kubectl delete pvc -l app=wordpress
 Delete state fulset only (not pods):		kubectl delete sts/<stateful_set_name> --cascade=false
 
-1.4 Log & Conf Files
+**********************
+*  Log & Conf Files *
+***********************
+
 Config folder:					/etc/kubernetes/
 Certificate files:				/etc/kubernetes/pki/
 Credentials to API server:			/etc/kubernetes/kubelet.conf
@@ -131,7 +134,7 @@ Customize resource definition:			kubectl set resources deployment nginx -c=nginx
 
 List all services:				kubectl get services
 List service endpoints:				kubectl get endpoints
-et service detail:				kubectl get service nginx-service -o yaml
+Get service detail:				kubectl get service nginx-service -o yaml
 Get service cluster ip:				kubectl get service nginx-service -o go-template=’{{.spec.clusterIP}}’
 Get service cluster port:			kubectl get service nginx-service -o go-template=’{{(index .spec.ports 0).port}}’
 Expose deployment as lb service:		kubectl expose deployment/my-app --type=LoadBalancer --name=my-service
