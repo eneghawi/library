@@ -54,42 +54,42 @@ minikube update-check
 *  Kind Commands  *
 *******************
 
--List all kind clusters: kind get clusters
--Get kubeconfig for a given cluster: kind get kubeconfig-path --name $cluster-name
--List all nodes for a given cluster: kind get nodes --name $cluster_name
--Create kind cluster: kind create cluster --name clusterapi
--Create cluster with different version of k8s: kind create cluster --image=kindest/node:v1.15.0@sha256:XXX
--Delete kind cluster: kind delete cluster --name clusterapi
--Load docker image from host to nodes: kind load docker-image debian:9
--Conf files: /etc/kubernetes
--Services start conf files: /etc/kubernetes/manifests
--kube api server conf file: /etc/kubernetes/manifests/kube-apiserver.yaml
+List all kind clusters:					kind get clusters
+Get kubeconfig for a given cluster:			kind get kubeconfig-path --name $cluster-name
+List all nodes for a given cluster:			kind get nodes --name $cluster_name
+Create kind cluster:					kind create cluster --name clusterapi
+Create cluster with different version of k8s:		kind create cluster --image=kindest/node:v1.15.0@sha256:XXX
+Delete kind cluster:					kind delete cluster --name clusterapi
+Load docker image from host to nodes:			kind load docker-image debian:9
+Conf files:						/etc/kubernetes
+Services start conf files:				/etc/kubernetes/manifests
+kube api server conf file:				/etc/kubernetes/manifests/kube-apiserver.yaml
 
 ******************
 *  CHECK STATUS  *
 ******************
 
--Get minikube version: minikube version, Link: all minikube releases
--Get cluster info: kubectl cluster-info
--Get service info: minikube service <srv-name>
--Get dashboard: minikube dashboard
--Get ip: minikube ip
--Get minikube log: minikube logs
--List addons: minikube addons list
+Get minikube version:					minikube version
+Get cluster info:					kubectl cluster-info
+Get service info:					minikube service <srv-name>
+Get dashboard:						minikube dashboard
+Get ip:							minikube ip
+Get minikube log:					minikube logs
+List addons:						minikube addons list
 
 **********************
 *  MINIKUBE FOLDERS  *
 **********************
 
--Mount host OS’s folder to minikube VM: minikube mount /host-mount-path:/vm-mount-path
--Folder of k8s.io/minikube-hostpath provisioner: /tmp/hostpath-provisioner, /tmp/hostpath_pv
--Mount host OS’s folder to minikube VM: minikube mount /host-mount-path:/vm-mount-path
--Critical minikube folder: /var/lib/localkube, /var/lib/docker, /data
--Check minikube config in your host OS desktop: ~/.minikube/machines/minikube/config.json
--Minikube conf in local env: ~/.minikube, ~/.kube
+-Mount host OS’s folder to minikube VM:			minikube mount /host-mount-path:/vm-mount-path
+-Folder of k8s.io/minikube-hostpath provisioner:	/tmp/hostpath-provisioner, /tmp/hostpath_pv
+-Mount host OS’s folder to minikube VM:			minikube mount /host-mount-path:/vm-mount-path
+-Critical minikube folder:				/var/lib/localkube, /var/lib/docker, /data
+-Check minikube config in your host OS desktop:		~/.minikube/machines/minikube/config.json
+-Minikube conf in local env:				~/.minikube, ~/.kube
 
-***********************
+j**********************
 *  MINIKUBE ADVANCED  *
 ***********************
 
--Install addon after creating minikube env: minikube addons enable heapster, kubectl top node
+-Install addon after creating minikube env:		minikube addons enable heapster, kubectl top node
