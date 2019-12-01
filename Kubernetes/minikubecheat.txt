@@ -1,0 +1,95 @@
+************************
+*  minikube lifecycle  *
+************************
+
+minikube delete
+minikube start
+minikube status
+**************************
+*  Get minikube version  *
+**************************
+
+minikube version
+
+**************************
+*  mac install minikube  *
+**************************
+
+brew cask install minikube, brew cask reinstall minikube
+**************************************************
+*  Start minikube with different machine flavor  *
+**************************************************
+
+minikube start --memory 5120 --cpus=4
+
+************************************************
+*  Start minikube with a specific k8s version  *
+************************************************
+
+minikube start --kubernetes-version v1.11.0
+
+*********************************************
+*  Start minikube with more customizations  *
+*********************************************
+
+minikube start –kubernetes-version v1.11.0 –feature-gates=AdvancedAuditing=true
+
+************************
+*  SSH to minikube vm  *
+************************
+
+minikube ssh, ssh -i ~/.minikube/machines/minikube/id_rsa docker@192.168.99.100
+***********************************************
+*  Your local docker to use minikube dockerd  *
+***********************************************
+
+eval $(minikube docker-env), Then no need for docker push
+***********************************
+*  Minikube check latest version  *
+***********************************
+
+minikube update-check
+
+*******************
+*  Kind Commands  *
+*******************
+
+-List all kind clusters: kind get clusters
+-Get kubeconfig for a given cluster: kind get kubeconfig-path --name $cluster-name
+-List all nodes for a given cluster: kind get nodes --name $cluster_name
+-Create kind cluster: kind create cluster --name clusterapi
+-Create cluster with different version of k8s: kind create cluster --image=kindest/node:v1.15.0@sha256:XXX
+-Delete kind cluster: kind delete cluster --name clusterapi
+-Load docker image from host to nodes: kind load docker-image debian:9
+-Conf files: /etc/kubernetes
+-Services start conf files: /etc/kubernetes/manifests
+-kube api server conf file: /etc/kubernetes/manifests/kube-apiserver.yaml
+
+******************
+*  CHECK STATUS  *
+******************
+
+-Get minikube version: minikube version, Link: all minikube releases
+-Get cluster info: kubectl cluster-info
+-Get service info: minikube service <srv-name>
+-Get dashboard: minikube dashboard
+-Get ip: minikube ip
+-Get minikube log: minikube logs
+-List addons: minikube addons list
+
+**********************
+*  MINIKUBE FOLDERS  *
+**********************
+
+-Mount host OS’s folder to minikube VM: minikube mount /host-mount-path:/vm-mount-path
+-Folder of k8s.io/minikube-hostpath provisioner: /tmp/hostpath-provisioner, /tmp/hostpath_pv
+-Mount host OS’s folder to minikube VM: minikube mount /host-mount-path:/vm-mount-path
+-Critical minikube folder: /var/lib/localkube, /var/lib/docker, /data
+-Check minikube config in your host OS desktop: ~/.minikube/machines/minikube/config.json
+-Minikube conf in local env: ~/.minikube, ~/.kube
+
+***********************
+*  MINIKUBE ADVANCED  *
+***********************
+
+-Install addon after creating minikube env: minikube addons enable heapster, kubectl top node
