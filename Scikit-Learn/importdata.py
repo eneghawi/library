@@ -7,53 +7,55 @@ import certifi
 import numpy as np
 import matplotlib.pyplot at plt
 import hashlib
+import sklearn
 
 DOWNLOAD_ROOT = "https://raw.githubusercontent.com/ageron/handson-ml/master/"
-HOUSING_PATH = "datasets/housing"
-HOUSING_URL = DOWNLOAD_ROOT + HOUSING_PATH + "/housing.tgz"
-print ( HOUSING_URL )
-def fetch_housing_data(housing_url=HOUSING_URL, housing_path= HOUSING_PATH):
+DATASET_PATH = "datasets/dataset"
+DATASET_URL = DOWNLOAD_ROOT + DATASET_PATH + "/dataset.tgz"
+
+print ( DATASET_URL )
+def fetch_dataset_data(dataset_url=DATASET_URL, dataset_path= DATASET_PATH):
     """This will create the dataset directory and make sure it is there. After that it will download the datasets and extract it into .CSV
 
-    :housing_url: TODO
-    :housing_path: TODO
+    :dataset_url: TODO
+    :dataset_path: TODO
     :returns: TODO
 
     """
-    if not os.path.isdir(housing_path):
-        os.makedirs(housing_path)
-    tgz_path = os.path.join(housing_path, "houelie.tgz")
-    urllib.request.urlretrieve(housing_url, tgz_path)
-    housing_tgz = tarfile.open(tgz_path)
-    housing_tgz.extractall(path=housing_path)
-    housing_tgz.close()
+    if not os.path.isdir(dataset_path):
+        os.makedirs(dataset_path)
+    tgz_path = os.path.join(dataset_path, "houelie.tgz")
+    urllib.request.urlretrieve(dataset_url, tgz_path)
+    dataset_tgz = tarfile.open(tgz_path)
+    dataset_tgz.extractall(path=dataset_path)
+    dataset_tgz.close()
 
-def fetch_housing_data_ssl(housing_url=HOUSING_URL, housing_path= HOUSING_PATH):
+def fetch_dataset_data_ssl(dataset_url=DATASET_URL, dataset_path= DATASET_PATH):
     """This will create the dataset directory and make sure it is there. After that it will download the datasets and extract it into .CSV
 
-    :housing_url: TODO
-    :housing_path: TODO
+    :dataset_url: TODO
+    :dataset_path: TODO
     :returns: TODO
 
     """
-    if not os.path.isdir(housing_path):
-        os.makedirs(housing_path)
-    tgz_path = os.path.join(housing_path, "housing.tgz")
-    with urllib.request.urlopen(housing_url) as d, open(fname,"wb"):
+    if not os.path.isdir(dataset_path):
+        os.makedirs(dataset_path)
+    tgz_path = os.path.join(dataset_path, "dataset.tgz")
+    with urllib.request.urlopen(dataset_url) as d, open(fname,"wb"):
         data = d.read()
         opfile.write(data)
-    housing_tgz = tarfile.open(tgz_path)
-    housing_tgz.extractall(path=housing_path)
-    housing_tgz.close()
+    dataset_tgz = tarfile.open(tgz_path)
+    dataset_tgz.extractall(path=dataset_path)
+    dataset_tgz.close()
 
-def load_housing_data(housing_path=HOUSING_PATH):
+def load_dataset_data(dataset_path=DATASET_PATH):
     """import file from .CSV to a panda panda
 
-    :housing_path: TODO
+    :dataset_path: TODO
     :returns: TODO
 
     """
-    csv_path=os.path.join(housing_path,"housing.csv")
+    csv_path=os.path.join(dataset_path,"dataset.csv")
     return pd.read_csv(csv_path)
 
 """
@@ -82,17 +84,15 @@ def split_train_test(data, test_ratio):
 """
 train_set, test_set = split_train_test(dataset, 0.2)
 print(len(train_set) + "train +", len(test_set) + "test")
-""
 
-"""
 %matplotlib inline #only for Jupyter Notebook
 dataset.hist(bins=50, figsize=(20,15))
 plt.show()
-""
+"""
 
 """
 Create a test set
-""
+"""
 
 
 def test_set_check(identifier, test_ratio, hash):
@@ -129,8 +129,14 @@ train_set, test_set = split_train_test_by_id(dataset, 0.2, "index")
 This will work if we ensure that the new data will get appended at the end of the file.
 
 A more stable feature is to use the some of the attributes that we know that are unique and they don't change '
+dataset_with_id["id"] = data["ColumnThatisstable"] *1000 + data["SecodColumnThatisstable"] 
+train_set, test_set = split_train_test_by_id(dataset_with_id, 0.2, "id")
+"""
 
-""
-def load_housing_data(housing_path=HOUSING_PATH)
-    csv_path = os.path.join(housing_path,"housing.csv")
-    return pd.read_csv(csv_path)
+"""
+A more usefull solution is to use the Scikit-Learn functions that split the dataset into multiple dataset and one of them is train_test_split. It can also take random_state parameter that allows you to set the random generator seed as explained previously.
+
+train_set, test_set = train_test_split(dataset, test_size = 0.2 , random_state= 42)
+"""
+
+
