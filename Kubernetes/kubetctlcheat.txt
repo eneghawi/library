@@ -37,6 +37,11 @@ Explain resource:				kubectl explain pods, kubectl explain svc
 Enable kubectl shell autocompletion:		echo "source <(kubectl completion bash)" >>~/.bashrc, and reload
 Check pod environment variables:		kubectl exec redis-master-ft9ex env
 
+View the pods with a custom view:		kubectl get pods -o custom-columns=POD:metadata.name,NODE:spec.nodeName --sort-by spec.nodeName -n kube-system
+View the kube-scheduler YAML:			kubectl get endpoints kube-scheduler -n kube-system -o yaml
+Create a stacked etcd topology using kubeadm:	kubeadm init --config=kubeadm-config.yaml
+Watch as pods are created namespace::		kubectl get pods -n kube-system -w
+
 ***********************
 *  Check Performance  *
 ***********************
