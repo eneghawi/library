@@ -1,3 +1,9 @@
 ############################################LinuxCommands###################################################
-nautilus: To ben finder for that specific file
 
+ To open a file that specific file: nautilus
+
+#######################
+#  Ubuntu and Debian  #
+#######################
+
+Hold the packages for not automatic update: apt-mark hold <packagee
