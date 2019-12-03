@@ -253,6 +253,19 @@ kubectl:					the command line util to talk to k8s cluster
 kubeadm:					the command to bootstrap the cluster
 kubefed:					the command line to control a Kubernetes Cluster Federation
 
+***********
+*  Taint  *
+***********
+*****Description*****
+Taints allow a Node to repel a set of Pods.The taint has key key, value value, and taint effect NoSchedule. This means that no pod will be able to schedule onto node1 unless it has a matching toleration.
+Example: 
+kubectl taint node <node_name> node-type=prod:NoSchedule 
+Here the key is node-type(Created by user), prod(Created by user), effect(Defined by Kubernetes) 
+
+*****Commands*****
+Add a taint to a node:								kubectl taint nodes <node_name> key=value:NoSchedule
+Taint one of the worker nodes to identify the prod environment:			kubectl taint nodes <node_name> node-type=prod:NoSchedule
+To remove the taint added by the command above, you can run:			kubectl taint nodes <node_name> key:NoSchedule-
 
 *************
 *  Testing  *
@@ -271,6 +284,10 @@ Get a response from the service:					curl -I localhost:$node_port
 List the nodes' status:							kubectl get nodes
 View detailed information about the nodes:				kubectl describe nodes
 View detailed information about the pods:				kubectl describe pods
+
+****References****
+https://github.com/kubernetes/community/blob/master/contributors/devel/sig-testing/e2e-tests.md
+
 
 ****************
 *  References  *
