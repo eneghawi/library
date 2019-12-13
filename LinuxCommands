@@ -7,3 +7,68 @@
 #######################
 
 Hold the packages for not automatic update: apt-mark hold <packagee
+
+
+#############################
+#  Selinux Troubleshooting  #
+#############################
+#
+# Common SELinux related commands in alphabetical order: #
+ausearch						SELinux audit log search tool.
+audit2allow						Generate SELinux policy allow rules from logs of denied operations.
+audit2why						Determine which component of your policy caused a denial.
+chcon							Tool for changing the SELinux context of files and directories.
+fixfiles						Fixfiles is a shell script that wraps setfiles and restorecon.
+getenforce						Tool for getting the SELinux enforcement state.
+getsebool						Tool for getting SELinux boolean values.
+matchpathcon						This is a simple tool that takes files/directories and prints the default security context of the files.
+restorecon						Tool for reverting files back to the default labels.
+semanage						Tool for managing SELinux policy mappings.
+semodule						Tool for manipulating SELinux modules.
+sestatus						Tool for retrieving the current SELinux status.
+setenforce						Tool for setting the SELinux enforcement state.
+setsebool						Tool for setting/toggling SELinux booleans.
+setroubleshoot						GUI troubleshooting tool / daemon.
+system-config-securitylevel-tui				Rudimentary tool for enabling/disabling/configuring SELinux and IPtables.
+
+#Common SELinux problems and solutions:#
+semanage port -a -t http_port_t -p tcp 8081 		Open special port
+semanage port -l | grep 8081				Check that the port is added
+setsebool -P httpd_can_network_connect true		Fix http proxy connect error: (for a list of other SELinux booleans see: getsebool)
+fixfiles -f -F relabel					Filesystem relabel(requires reboot)
+fixfiles onboot; reboot
+semodule -l						List currently installed SELinux modules:
+
+chcon -t httpd_sys_content_t -R /home/$foo		Relabel or change SELinux file contexts:
+Note: Apache httpd files are served from /var/www/ on Centos for security reasons.
+
+#Search for recent SELinux AVC denials:#
+ausearch -m avc -ts recent
+ausearch -m avc -ts today
+
+#Determine why SELinux has denied an event:#
+ausearch -m avc -ts today | audit2why
+
+#View SELinux file contexts on a given directory and the files within it:#
+ls -Z
+(You can also use getfattr although, you need to specify -n security.selinux)
+getfattr -n security.selinux /tmp/$foo
+
+#Reset SELinux to its initial state:#
+yum remove selinux-policy
+rm -rf /etc/selinux
+yum install selinux-policy-targeted
+fixfiles -f -F relabel
+reboot
+
+Hand edit SELinux enforcement policy: (requires a reboot): vi /etc/selinux/config
+
+
+######### Troubleshooting / How To Test########
+
+#Check what SELinux related rpms you have installed:#
+rpm -q checkpolicy libselinux libselinux-python libselinux-utils libsemanage libsepol mcstrans policycoreutils policycoreutils-gui selinux-policy selinux-policy-minimum selinux-policy-mls selinux-policy-strict selinux-policy-targeted setroubleshoot setroubleshoot-server setroubleshoot-plugins setools setools-gui
+
+#Install and configure setroubleshoot to help you isolate and fix SELinux AVC denials:#
+yum install setroubleshoot*
+chkconfig –level 2345 setroubleshoot on
