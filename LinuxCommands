@@ -72,6 +72,7 @@ semanage fcontext -a -t <typeofselinux> "/path/directory(/.*)?"
 semanage fcontext -a -e <directoryofdesiredtype> "/path"
 Set the policies:
 restorecon -vR /path
+Create a file after you set the the selinux to permissive and do touch /.autorelabel
 #Search for recent SELinux AVC denials:#
 ausearch -m avc -ts recent
 ausearch -m avc -ts today
