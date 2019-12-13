@@ -6,6 +6,7 @@
 #  Ubuntu and Debian  #
 #######################
 
+<<<<<<< HEAD
 Hold the packages for not automatic update: apt-mark hold <packagee
 
 
@@ -72,3 +73,18 @@ rpm -q checkpolicy libselinux libselinux-python libselinux-utils libsemanage lib
 #Install and configure setroubleshoot to help you isolate and fix SELinux AVC denials:#
 yum install setroubleshoot*
 chkconfig –level 2345 setroubleshoot on
+=======
+Hold the packages for not automatic update: 				apt-mark hold <packagee
+Get the mapping IP + MAC:						sudo nmap -sP 172.31.201.0/24 | awk '/Nmap scan report for/{printf $5;}/MAC Address:/{print " => "$3;}' | sort
+
+
+#########################################
+#  Generating Certificates and Signing  #
+#########################################
+#
+openssl genrsa -des3 -out ca.key 2048
+openssl req -new -x509 -days 1826 -key ca.key -out ca.crt
+openssl genrsa -out server.key 2048
+openssl req -new -out server.csr -key server.key
+openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 360
+>>>>>>> a3ec932c1a19c4bfd68ff3f075d4ccc26a39df58

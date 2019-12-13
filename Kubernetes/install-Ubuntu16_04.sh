@@ -1,3 +1,7 @@
+#############
+#  Install  #
+#############
+
 #Get the Docker gpg key:
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 
@@ -45,3 +49,55 @@ sudo kubeadm join [your unique string from the kubeadm init command]
 
 #Verify the worker nodes have joined the cluster successfully:
 kubectl get nodes
+
+
+################################
+#  Upgrade Kubernetes Cluster  #
+################################
+
+#Get the version of the API server:
+kubectl version --short
+
+#View the version of kubelet:
+kubectl describe nodes 
+
+#Get the pods that are used to control the cluster 
+kubectl get pods -n kube-system -o wide
+
+#View the version of controller-manager pod:
+kubectl get pods [controller_pod_name] -o yaml -n kube-system
+
+#Release the hold on versions of kubeadm and kubelet:
+sudo apt-mark unhold kubeadm kubelet
+
+#Install version 1.14.1 of kubeadm:
+sudo apt install -y kubeadm=1.14.1-00
+
+#Hold the version of kubeadm at 1.14.1:
+sudo apt-mark hold kubeadm
+
+#Verify the version of kubeadm:
+kubeadm version
+
+########### MASTER NODE ##############
+#Plan the upgrade of all the controller components (but DON'T UPGRADE will show to what version it will be upgraded to):
+sudo kubeadm upgrade plan
+#Componenets that gets upgraded: API Server, Controller Manager, Scheduler , Kube Proxy, CoreDNS and Etcd
+#Upgrade the controller components:
+sudo kubeadm upgrade apply v1.14.1
+########################
+
+#Release the hold on the version of kubectl:
+sudo apt-mark unhold kubectl
+
+#Upgrade kubectl:
+sudo apt install -y kubectl=1.14.1-00
+
+#Hold the version of kubectl at 1.14.1:
+sudo apt-mark hold kubectl
+
+#Upgrade the version of kubelet:
+sudo apt install -y kubelet=1.14.1-00
+
+#Hold the version of kubelet at 1.14.1:
+kudo apt-mark hold kubelet
