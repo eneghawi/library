@@ -6,14 +6,24 @@
 #  Ubuntu and Debian  #
 #######################
 
-<<<<<<< HEAD
-Hold the packages for not automatic update: apt-mark hold <packagee
 
 
 #############################
 #  Selinux Troubleshooting  #
 #############################
-#
+
+###Selinux Introduction:
+##DAC vs MAC:
+# Linux and Unix systems have used Discretionary Access Control (DAC): Ownership (user, group and other) Plus permissions (Read, Write, Execute)
+# Mandatory Access Control (MAC) there is a policy which is admnistratively set and fixed. Even if you change the DAC settings on your home directory, if there is a policy in place which prevents another user or process from accessing it, you're generally safe.
+# This can be set between Users, Files, Directories, Memory, Sockets, tcpdump ports, etc...
+# Two types of Policies in Selinux: Targeted policies( Only targeted processes are protected by SELinux), MLS (multi-level/multi-category security) which can be very complex.
+# How Does SELinux Work? Two important concepts to understand with SELinux are: Labeling and Type Enforcement
+# Labeling: All files, processes, ports, etc, are all labeled with SELinux context. For files and Directories these labels are stored as extended attributes on the filesystem. For Processes the Kernel Manages these labels.
+# Labels Format: user:role:type:level(Optional)
+# We will not deal with the user role and level (More advanced and needed by the MLS)
+#What are the booleans? They are just on/off switches in SELinux. Do we want to allow the ftp server to access to home directories. getsebool to get the information
+
 # Common SELinux related commands in alphabetical order: #
 ausearch						SELinux audit log search tool.
 audit2allow						Generate SELinux policy allow rules from logs of denied operations.
@@ -31,6 +41,17 @@ setenforce						Tool for setting the SELinux enforcement state.
 setsebool						Tool for setting/toggling SELinux booleans.
 setroubleshoot						GUI troubleshooting tool / daemon.
 system-config-securitylevel-tui				Rudimentary tool for enabling/disabling/configuring SELinux and IPtables.
+id -Z							Gives you the user or id of the person selinux
+ps axZ							Get the processes selinux info
+netstat -tnlpZ						Get the network ports with the selinux info
+semanage port -l | grep <portnumber>			Get all the ports informaiton needed
+setsebool <name> 1 -P					To allow the policy and the -P to make it persistant are reboot
+
+#Semanage:
+#login user, port, interface, module, node, file context, boolean, permissive state, dontaudit
+#Restorecon:
+#Relies on the information in the /etc/selinux/targeted/contexts/files/file_contexts
+#Don't modify that directory since your changes will be modified.The changes will be lost
 
 #Common SELinux problems and solutions:#
 semanage port -a -t http_port_t -p tcp 8081 		Open special port
@@ -43,6 +64,14 @@ semodule -l						List currently installed SELinux modules:
 chcon -t httpd_sys_content_t -R /home/$foo		Relabel or change SELinux file contexts:
 Note: Apache httpd files are served from /var/www/ on Centos for security reasons.
 
+chcon --reference <file similar> <newfile> 
+restorecon -vR <directory>				To set the selinux config form the directory to all the parts inside of it
+
+Change the policies:
+semanage fcontext -a -t <typeofselinux> "/path/directory(/.*)?"
+semanage fcontext -a -e <directoryofdesiredtype> "/path"
+Set the policies:
+restorecon -vR /path
 #Search for recent SELinux AVC denials:#
 ausearch -m avc -ts recent
 ausearch -m avc -ts today
@@ -51,7 +80,7 @@ ausearch -m avc -ts today
 ausearch -m avc -ts today | audit2why
 
 #View SELinux file contexts on a given directory and the files within it:#
-ls -Z
+ls -lZ
 (You can also use getfattr although, you need to specify -n security.selinux)
 getfattr -n security.selinux /tmp/$foo
 
@@ -71,12 +100,18 @@ Hand edit SELinux enforcement policy: (requires a reboot): vi /etc/selinux/confi
 rpm -q checkpolicy libselinux libselinux-python libselinux-utils libsemanage libsepol mcstrans policycoreutils policycoreutils-gui selinux-policy selinux-policy-minimum selinux-policy-mls selinux-policy-strict selinux-policy-targeted setroubleshoot setroubleshoot-server setroubleshoot-plugins setools setools-gui
 
 #Install and configure setroubleshoot to help you isolate and fix SELinux AVC denials:#
+yum install setroubleshoot setroubleshoot-server
+or
 yum install setroubleshoot*
 chkconfig –level 2345 setroubleshoot on
+systemctl restart auditd.service
+service auditd restart
 =======
-Hold the packages for not automatic update: 				apt-mark hold <packagee
+Hold the packages for not automatic update:				apt-mark hold <packagee
 Get the mapping IP + MAC:						sudo nmap -sP 172.31.201.0/24 | awk '/Nmap scan report for/{printf $5;}/MAC Address:/{print " => "$3;}' | sort
 
+To see the journal since last reboot:
+journalctl -b 0 
 
 #########################################
 #  Generating Certificates and Signing  #
@@ -87,4 +122,3 @@ openssl req -new -x509 -days 1826 -key ca.key -out ca.crt
 openssl genrsa -out server.key 2048
 openssl req -new -out server.csr -key server.key
 openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 360
->>>>>>> a3ec932c1a19c4bfd68ff3f075d4ccc26a39df58
