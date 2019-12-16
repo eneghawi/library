@@ -136,6 +136,7 @@ openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out s
 #test(el2)
 
 rename -n -v 's/test\((.*?)\)/$1elie/g' *.txt
+rename -n -v 's/^(.*)\((.*)\).mp4/\2_\1/' *.txt
 
 #-n is to do nothing and just show what will happen if the command will ran
 #output:
@@ -145,3 +146,10 @@ rename -n -v 's/test\((.*?)\)/$1elie/g' *.txt
 #el21elie
 #el2elie
 #\((.*?)\) is to capture files in between paratheses to the variable $1
+
+#A Note on PythonNumpy Vectors (C1W2L16).mp4
+rename -v 's/^(.*) \((.*)\).mp4/(\2)_\1.mp4/' *.mp4
+#(C1W2L16)_A Note on PythonNumpy Vectors.mp4
+
+#\2 better written as $2 at (eval 2) line 1.
+#\1 better written as $1 at (eval 2) line 1.
