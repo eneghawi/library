@@ -123,3 +123,25 @@ openssl req -new -x509 -days 1826 -key ca.key -out ca.crt
 openssl genrsa -out server.key 2048
 openssl req -new -out server.csr -key server.key
 openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 360
+
+
+
+####################
+#  Renaming files  #
+####################
+#files:
+#test(1)
+#test(el1)
+#test(el21)
+#test(el2)
+
+rename -n -v 's/test\((.*?)\)/$1elie/g' *.txt
+
+#-n is to do nothing and just show what will happen if the command will ran
+#output:
+#
+#1elie
+#el1elie
+#el21elie
+#el2elie
+#\((.*?)\) is to capture files in between paratheses to the variable $1
