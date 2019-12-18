@@ -1,0 +1,6 @@
+-------------------------------------------
+-  Download a package without installing  -
+-------------------------------------------
+sudo yum install yum-utils					Install yumdownloader which is part of yum-utils
+sudo yumdownloader <PackageName>				The package will be dowloaded in the same directory it is downloaded
+
