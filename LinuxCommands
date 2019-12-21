@@ -153,3 +153,12 @@ rename -v 's/^(.*) \((.*)\).mp4/(\2)_\1.mp4/' *.mp4
 
 #\2 better written as $2 at (eval 2) line 1.
 #\1 better written as $1 at (eval 2) line 1.
+#
+#
+###########
+#  xargs  #
+###########
+xargs -0 -I {} mv {} ~/old.files
+
+#-0 If there are blank spaces or characters (including newlines) many commands will not work. This option take cares of file names with blank space.
+#-I Replace occurrences of replace-str in the initial-arguments with names read from standard input. Also, unquoted blanks do not terminate input items; instead the separator is the newline character.
