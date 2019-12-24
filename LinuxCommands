@@ -1,9 +1,18 @@
 ############################################LinuxCommands###################################################
+nautilus					To open a file that specific file: nautilus
+ausearch					SELinux audit log search tool.
 
- To open a file that specific file: nautilus
-
+###############
+#  Namespace  #
+###############
+lsns						To list all the namespaces in the current machine
+unshare						To create a new namespace
 #######################
 #  Ubuntu and Debian  #
+#######################
+
+#######################
+#  CentOS and RedHat  #
 #######################
 
 
