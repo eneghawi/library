@@ -1,4 +1,4 @@
-#The first thing that we are going to do is use SSH to log in to all machines. Once we have logged in, we need to elevate privileges using sudo.
+#Get root access
 sudo su  
 
 #Disable SELinux.
