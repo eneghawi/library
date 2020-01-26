@@ -1,2 +1,3 @@
 ############################################GitCommands###################################################
+To store credential and stop typing the password: git config --global credential.helper store
 
