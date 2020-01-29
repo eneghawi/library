@@ -12,14 +12,12 @@
 -------------------------------------
 -  JumpBox Configuration as client  -
 -------------------------------------
-- Install kubectl on the Jumpbox.
-- On the linux jumpbox create your credential to be able to interact with the cluster using kubectl through the loadbalancer ONLY. (This way you won't have to interact with one of the master directly and the load is distributed)
+- Configure on the linux jumpbox create your credential to be able to interact with the cluster using kubectl through the loadbalancer ONLY. (This way you won't have to interact with one of the master directly and the load is distributed)
 - Show that it works by checking logs on the masters.
 
 ---------------------------------
 -  Verification of the Cluster  -
 ---------------------------------
-
 Provide the following Output: 
 
 - List all the nodes in the Cluster.
@@ -43,8 +41,7 @@ Provide the following Output:
 + Second Container should have the following specs: 
 - Debian docker image
 - A shared volume named html (Same as container one) mounted to directory /etc/html 
-- Runs a bash script that will run every day and write the date to the /etc/html/index.html: 
-"Sebastien is on vacation 2020-01-28"
+- Runs a bash script that will run every day and curl the page http://wttr.in/montreal to the /etc/html/index.html
 
 --------------------------------------
 -  Run the Pod and try to access it  -
@@ -52,7 +49,6 @@ Provide the following Output:
 - Try to run the pods and solve any error in YAML if any
 - Check if the pods is running healthy and get all details about it
 - Get some logs from each of the container of that pod if any
-- Try to access that pod to display the html message specified in the previous section
 
 ---------------------------------
 -  Delete the pod and clean up  -
