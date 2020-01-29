@@ -1,0 +1,149 @@
+--------------------------
+-  Creating the Cluster  -
+--------------------------
+- Install Docker on all four nodes.
+- Install haproxy load balancer on fifth node.
+- Install Kubeadm, Kubelet, and Kubectl on all four nodes.
+- Bootstrap the cluster on the first Kube master node and pointing to the load balancer.
+- Join the second Kube master node.
+- Join the two Kube worker nodes to the cluster.
+- Set up cluster networking with flannel or with any alternative of your own
+
+-------------------------------------
+-  JumpBox Configuration as client  -
+-------------------------------------
+- Install kubectl on the Jumpbox.
+- On the linux jumpbox create your credential to be able to interact with the cluster using kubectl through the loadbalancer ONLY. (This way you won't have to interact with one of the master directly and the load is distributed)
+- Show that it works by checking logs on the masters.
+
+---------------------------------
+-  Verification of the Cluster  -
+---------------------------------
+
+Provide the following Output: 
+
+- List all the nodes in the Cluster.
+- List all the namespaces.
+- List all the pods in all namespaces in the Cluster.
+- Find the IP address of the API server running on the master node
+- Examine the logs of the cluster networking pods and provide the output
+- Examine the logs of the cluster etcd pod and provide the output
+- Find the label applied to the etcd pod on one of the masters. (One should suffice)
+
+-------------------------------------------------------------
+-  Create a YAML file Pod Containing Two simple containers  -
+-------------------------------------------------------------
+- Create a Pod with the name Elie that contains two Containers: 
+
++ First Container should have the following specs: 
+- Nginx docker image
+- A shared valume named html mounted to the directory /usr/share/nginx/html
+- Specify that this container should listen on Port 80 
+
++ Second Container should have the following specs: 
+- Debian docker image
+- A shared volume named html (Same as container one) mounted to directory /etc/html 
+- Runs a bash script that will run every day and write the date to the /etc/html/index.html: 
+"Sebastien is on vacation 2020-01-28"
+
+--------------------------------------
+-  Run the Pod and try to access it  -
+--------------------------------------
+- Try to run the pods and solve any error in YAML if any
+- Check if the pods is running healthy and get all details about it
+- Get some logs from each of the container of that pod if any
+- Try to access that pod to display the html message specified in the previous section
+
+---------------------------------
+-  Delete the pod and clean up  -
+---------------------------------
+- Delete the pod and make sure it is deleted by providing output.
+
+---------------------------------
+-  Learn about the busybox pod  -
+---------------------------------
+- Read and find out about busybox docker image and learn about it's usage and intentions.
+
+-------------------------------------------------
+-  Deploy a simple Elie service to the Cluster  -
+-------------------------------------------------
+- Create a deployment of the same Elie (two containers as before) service with four replicas.
+- Make sure the deployment is up in the cluster and provide output
+- Create a service called ElieService to access the Elie deployment with the following specs: 
++ Listening on Port 8080
++ Access the backend port 80
+
+----------------------------------
+-  Verify using the BusyBox Pod  -
+----------------------------------
+- Create a busybox pod.
+- Uerify that you can access the Elie service  from a busybox testing pod.
+- Perform a DNS query to the ElieService using the busybox and record the output of the DNS A record..
+
+--------------------------------
+-  Scale the Elie deployement  -
+--------------------------------
+- Scale the Elie deployment from four to six 
+- Inspect the pods and provide the output.
+
+------------------------------------------------------
+-  Deploy a Microservice Application on the Cluster  -
+------------------------------------------------------
+- Check out the following link to learn about the sample application architecture: 
+https://github.com/instana/robot-shop/
+- Clone the following repo to the jumpbox
+- Since we have another application running on the default namespace, it is a good idea to create a separate namespace for this robot app:
+- Deploy the app on the cluster. 
+- Check the status of the application and examine the pods. Provide the output of your examination
+
+--------------------------
+-  Taint and Toleration  -
+--------------------------
+- Read about the Taint and Tolerations:
+https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/#example-use-cases
+- List the taints of each worker and provide the output
+- Apply a taint to the Worker1  with the keyvalue of cpu:veryslow and with effect of NoSchedule.
+- List the taints of that worker and provide the output
+- Deploy the Elie deployement (with the two container inside done previously) with 3 replicas
+- List the pods to which nodes they are deployed to and provide the output
+- Delete the Elie deployment and provide the output that it is deleted. 
+- Deploy the Elie deployment with the added toleration of cpu:veryslow and the effect of NoSchedule.
+- List the pods to which nodes they are deployed to and provide the output
+- Remove the taint from Worker1 
+- List the taints of that worker and provide the output.
+
+
+-------------------------------------------------------
+-  Draining Worker1 and Removing it from the Cluster -
+-------------------------------------------------------
+
+- Review the nodes status and verify that they are working.
+- List the pods of all namespaces and look on to which nodes they are running on. (Provide the output)
+- Drain Worker1 from the cluster safely.
+- Verify that the Worker1 is being drained.
+- List the pods of all namespaces and make sure that none is running on Worker 1. (Provide the output)
+- Remove Worker1 from the Cluster and make sure it removed (Provide the output) 
+
+--------------------------------------
+-  Readding Worker1 to the Cluster   -
+--------------------------------------
+- List the nodes in the Cluster.
+- Create a token to add the Worker1 to the cluster again.
+- Verify that it's been added successfully'
+
+-------------------------------------------------------
+-  Draining Master1 and Removing it from the Cluster  -
+-------------------------------------------------------
+- Review the nodes status and verify that they are working.
+- List the pods of all namespaces and look on to which nodes they are running on. (Provide the output)
+- Drain Master1 from the cluster safely.
+- Verify that the Master1 is being drained.
+- List the pods of all namespaces and make sure that none is running on Master1. (Provide the output)
+- Remove Master1 from the Cluster and make sure it removed (Provide the output) 
+
+--------------------------------------
+-  Readding Master1 to the Cluster   -
+--------------------------------------
+- List the nodes in the Cluster.
+- Create a token to add the Master1 to the cluster again.
+- Verify that it's been added successfully.
