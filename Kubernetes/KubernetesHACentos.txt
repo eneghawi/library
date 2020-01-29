@@ -1,0 +1,146 @@
+***********************************************************************
+*                           Kuberenetes HA                            *
+***********************************************************************
+DATE:2020-01-10 8:38
+Creating Kubernetes with HA and using the HAProxy
+------------------------------------
+-  Creating the VMs in the VMware  -
+------------------------------------
+Steps to follow in VMWare and the specific images for the deployment
+
+---------------------------------
+-  Creating The Firewall Rules  -
+---------------------------------
+conf t
+object-group network K8-SRV
+ network-object host 10.3.201.76
+ network-object host 10.3.201.77
+ network-object host 10.3.201.78
+ network-object host 10.3.201.79
+ network-object host 10.3.201.80
+ network-object host 10.3.201.82
+
+-----------------------------------------------------------
+-  Installing Kubernetes and Docker on each of the Hosts  -
+-----------------------------------------------------------
+Password:
+hybris@work!
+
+#Get root access
+sudo su  
+
+#Disable SELinux.
+setenforce 0
+sed -i --follow-symlinks 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/sysconfig/selinux
+
+#Enable the br_netfilter module for cluster communication.
+modprobe br_netfilter
+echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables
+
+#Disable swap to prevent memory allocation issues.
+swapoff -a
+vi /etc/fstab  ->  Comment out the swap line
+
+#Install the Docker prerequisites.
+yum install -y yum-utils device-mapper-persistent-data lvm2
+Add the Docker repo and install Docker.
+yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+yum install -y docker-ce
+
+#Configure the Docker Cgroup Driver to systemd, enable and start Docker
+sed -i '/^ExecStart/ s/$/ --exec-opt native.cgroupdriver=systemd/' /usr/lib/systemd/system/docker.service 
+systemctl daemon-reload
+systemctl enable docker --now
+
+#Add the Kubernetes repo.
+cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=0
+repo_gpgcheck=0
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg
+   https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+EOF
+
+#Install Kubernetes.
+yum install -y kubelet kubeadm kubectl
+
+#Enable Kubernetes. The kubelet service will not start until you run kubeadm init.
+systemctl enable kubelet
+
+-------------------------
+-  HAProxy Configuration  -
+-------------------------
+#This is to be done on the Load Balancer which is basically a different machine than the others
+sudo yum install haproxy  -y
+
+vim /etc/haproxy/
+##################################################################
+frontend kubernetesMaster
+  bind *:6443
+  mode tcp
+  default_backend kubernetes-backend
+
+backend kubernetes-backend
+  balance roundrobin
+  server ns1-k8-team2-001 10.3.201.76:6443 check
+  server ns1-k8-team2-002 10.3.201.77:6443 check
+  server ns1-k8-team2-003 10.3.201.78:6443 check
+  option tcp-check
+  mode tcp
+##################################################################
+
+
+#********************************************************************
+#******NOTE: COMPLETE THE FOLLOWING SECTION ON THE MASTERS ONLY!******
+#Initialize the cluster using the IP range for Flannel.
+kubeadm init --pod-network-cidr=10.244.0.0/16 --control-plane-endpoint "10.3.201.82:6443" --upload-certs
+-----------------------------------------------------------------------
+-                               OUTPUT                                -
+-----------------------------------------------------------------------
+
+Your Kubernetes control-plane has initialized successfully!
+
+To start using your cluster, you need to run the following as a regular user:
+
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+You should now deploy a pod network to the cluster.
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+You can now join any number of the control-plane node running the following command on each as root:
+
+  kubeadm join 10.3.201.82:6443 --token wv5la2.0p1cdk30bad6im7x \
+    --discovery-token-ca-cert-hash sha256:ea101c2f23551428b27fcaf5d6a5c67aa0b34b8243195a05f883855e7f2c42f4 \
+    --control-plane --certificate-key 517cad60660c0afd18cd388919de11cd963639dfb5387633da203d145a0d2845
+
+Please note that the certificate-key gives access to cluster sensitive data, keep it secret!
+As a safeguard, uploaded-certs will be deleted in two hours; If necessary, you can use
+"kubeadm init phase upload-certs --upload-certs" to reload certs afterward.
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join 10.3.201.82:6443 --token wv5la2.0p1cdk30bad6im7x \
+    --discovery-token-ca-cert-hash sha256:ea101c2f23551428b27fcaf5d6a5c67aa0b34b8243195a05f883855e7f2c42f4
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
+
+#Exit sudo and run the following:
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+#Deploy Flannel.
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+#Check the cluster state.
+kubectl get pods --all-namespaces
+
+#Join the Worker with the following commands: 
+kubeadm join 10.3.201.82:6443 --token wv5la2.0p1cdk30bad6im7x \
+    --discovery-token-ca-cert-hash sha256:ea101c2f23551428b27fcaf5d6a5c67aa0b34b8243195a05f883855e7f2c42f4
