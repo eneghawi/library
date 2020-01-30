@@ -7,7 +7,7 @@
 - Bootstrap the cluster on the first Kube master node and pointing to the load balancer.
 - Join the second Kube master node.
 - Join the two Kube worker nodes to the cluster.
-- Set up cluster networking with flannel or with any alternative of your own
+- Set up cluster networking with flannel or with any alternative of your own.
 
 -------------------------------------
 -  JumpBox Configuration as client  -
@@ -88,7 +88,7 @@ Provide the following Output:
 - Check out the following link to learn about the sample application architecture: 
 https://github.com/instana/robot-shop/
 - Clone the following repo to the jumpbox
-- Since we have another application running on the default namespace, it is a good idea to create a separate namespace for this robot app:
+- Since we have another application running on the default namespace, it is a good idea to create a separate namespace for this robotapp:
 - Deploy the app on the cluster. 
 - Check the status of the application and examine the pods. Provide the output of your examination
 
@@ -100,14 +100,13 @@ https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/#example-
 - List the taints of each worker and provide the output
 - Apply a taint to the Worker1  with the keyvalue of cpu:veryslow and with effect of NoSchedule.
 - List the taints of that worker and provide the output
-- Deploy the Elie deployement (with the two container inside done previously) with 3 replicas
+- Deploy the Elie2 deployement (with the two container inside done previously) with 3 replicas
 - List the pods to which nodes they are deployed to and provide the output
-- Delete the Elie deployment and provide the output that it is deleted. 
-- Deploy the Elie deployment with the added toleration of cpu:veryslow and the effect of NoSchedule.
+- Delete the Elie2 deployment and provide the output that it is deleted. 
+- Deploy the Elie2 deployment with the added toleration of cpu:veryslow and the effect of NoSchedule.
 - List the pods to which nodes they are deployed to and provide the output
 - Remove the taint from Worker1 
 - List the taints of that worker and provide the output.
-
 
 -------------------------------------------------------
 -  Draining Worker1 and Removing it from the Cluster -
