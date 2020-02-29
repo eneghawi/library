@@ -1,0 +1,65 @@
+***********************************************************************
+*                          Ansible Projects                           *
+***********************************************************************
+
+*******************
+*  Backup Config  *
+*******************
+
+- Create Backup configuration for all networking devices.
+  + Add diff feature using git to track and easy accessible everywhere. 
+  + Structured format for different sites (Datacenters)
+  + Structured format for different type of devices and roles (ENCLF, ENC, Firewalls, Load Balancers etc...)
+  + Available backup on local machines and on git repo.
+  NOTE: Previously available? VERY limited to what we see and doesn't allow instantaneous backup and doesn't show differences
+
+*****************************
+*  Configuration Templates  *
+*****************************
+
+- Create Switch templates using the Jinja2 to make the config section similar for all switches. Examples:
+  + Add missing VLANS in MA and FR automatically for all ENCLF (Dell Switches) without any intervention.
+  + Add new configuration if needed for all the ENC switches without any intervention.
+  + None Vendor limitation and easy accessible everywhere.
+  NOTE: Previously available? Yes but limited with Arista Cloud Vision Only. This does not incomporate all vendors.
+
+*******************************
+*  Conditional Configuration  *
+*******************************
+
+- Create complex conditional configuration for specific devices and get them to run on daily basis.
+  + GBaaS on the internet switches or firewalls if needed. Dynamically update the list of blocked IPs.
+  + Domain controller and DNS discovery settings.
+  + Gather facts about specific devices and make sure high processing is not needed.
+  NOTE: Previously available? No 
+
+***********************
+*  Automatic Upgrade  *
+***********************
+
+- Upgrade networking devices automatically..
+  + Gather IOS facts about the device. (Boot time, image version, etc..)
+  + Copy IOS to device (Using tftp, scp, sftp, etc...)
+  + Check the MD5 Hash before installing and make sure it matches. 
+  + Upgrade if MD5 image matches.
+  + Reboot device if instructed
+  + Wait for the device to comeback (Using the boottime with facts to get exact time if timeout)
+  + Gather facts again for verification purposes
+  + Assert that the Image version is correct and update user.
+  NOTE: Previously available? No 
+
+********************
+*  Firewall Rules  *
+********************
+
+- Firewall rules from source to destination
+  + Across data centers with packet tracer and packet capture (Multivendor support)
+  + Subnet to host or host to host or subnet to subnet firewall rules verification.
+  + Provide feedback to Network Engineer and get him the right command to type or instruction on what to do.
+  NOTE: Previously available? No
+
+*********************
+*  FUTURE PROJECTS  *
+*********************
+- Ansible Tower for tracking changes in Ansible if colleagues decided to go that way. (Cost might be a limitation)
+- Dynamic Deployment with structured formats.
