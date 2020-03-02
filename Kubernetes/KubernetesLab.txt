@@ -1,3 +1,9 @@
+5 VMs: 
+
+2 Masters: 
+2 Worker nodes: 
+1 Load Balancer: HAProxy or Nginx
+
 --------------------------
 -  Creating the Cluster  -
 --------------------------
