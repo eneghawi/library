@@ -1,0 +1,22 @@
+---
+- hosts: localhost
+  vars_prompt:
+   - name: compliant_ios_version
+     prompt: "What is the compliant IOS version?"
+     private: no
+
+  tasks:
+  - name: GET DIFFERENCE OF TWO FILES
+    block:
+    - name: GET DIFFERENCE OF TWO FILES
+      command: >
+        diff --changed-group-format='%<%>' --unchanged-group-format='' /Users/elieneghawi/Documents/library/Ansible/testdiff/test1.txt /Users/elieneghawi/Documents/library/Ansible/testdiff/test2.txt
+      register: difference
+      failed_when: difference.rc > 1
+      changed_when: difference.rc == 1
+    - name: debug output
+      debug: var=difference.stdout
+    when: compliant_ios_version == '2'
+
+  - name: debug output
+    debug: var=difference.stdout
