@@ -1,4 +1,4 @@
-***********************************************************************
+r**********************************************************************
 *                           Kuberenetes HA                            *
 ***********************************************************************
 DATE:2020-01-10 8:38
@@ -144,3 +144,7 @@ kubectl get pods --all-namespaces
 #Join the Worker with the following commands: 
 kubeadm join 10.3.201.82:6443 --token wv5la2.0p1cdk30bad6im7x \
     --discovery-token-ca-cert-hash sha256:ea101c2f23551428b27fcaf5d6a5c67aa0b34b8243195a05f883855e7f2c42f4
+
+
+
+

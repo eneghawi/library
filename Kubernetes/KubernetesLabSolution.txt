@@ -1,0 +1,250 @@
+5 VMs: 
+
+2 Masters: 
+2 Worker nodes: 
+1 Load Balancer: HAProxy or Nginx
+
+--------------------------
+-  Creating the Cluster  -
+--------------------------
+- Install Docker on all four nodes.
+- Install haproxy load balancer on fifth node.
+- Install Kubeadm, Kubelet, and Kubectl on all four nodes.
+- Bootstrap the cluster on the first Kube master node and pointing to the load balancer.
+- Join the second Kube master node.
+- Join the two Kube worker nodes to the cluster.
+- Set up cluster networking with flannel or with any alternative of your own.
+
+-------------------------------------
+-  JumpBox Configuration as client  -
+-------------------------------------
+- Configure on the linux jumpbox create your credential to be able to interact with the cluster using kubectl through the loadbalancer ONLY. (This way you won't have to interact with one of the master directly and the load is distributed)
+- Show that it works by checking logs on the masters.
+
+Solution: 
+
+- Install Kubectl: 
+sudo -i 
+cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+EOF
+yum install -y kubectl
+
+mkdir .kube/
+scp root@10.14.247.81:/etc/kubernetes/admin.conf ~/.kube/config
+sudo chown $(id -u):$(id -g) ~/.kube/config
+
+---------------------------------
+-  Verification of the Cluster  -
+---------------------------------
+Provide the following Output: 
+
+- List all the nodes in the Cluster.
+$ kubectl get nodes
+NAME              STATUS   ROLES    AGE   VERSION
+bo2-inf-k8l-081   Ready    master   31m   v1.17.3
+bo2-inf-k8l-082   Ready    master   29m   v1.17.3
+bo2-inf-k8l-083   Ready    <none>   26m   v1.17.3
+bo2-inf-k8l-084   Ready    <none>   25m   v1.17.3
+
+- List all the namespaces.
+$ kubectl get namespace
+NAME              STATUS   AGE
+default           Active   34m
+kube-node-lease   Active   34m
+kube-public       Active   34m
+kube-system       Active   34m
+
+- List all the pods in all namespaces in the Cluster.
+$ kubectl get pods -A
+NAMESPACE     NAME                                       READY   STATUS    RESTARTS   AGE
+kube-system   calico-kube-controllers-5b644bc49c-g664j   1/1     Running   0          26m
+kube-system   calico-node-b2twh                          1/1     Running   0          26m
+kube-system   calico-node-nthpx                          1/1     Running   0          26m
+kube-system   calico-node-tq7m2                          1/1     Running   0          26m
+kube-system   calico-node-wdkng                          1/1     Running   0          26m
+kube-system   coredns-6955765f44-2bfs5                   1/1     Running   1          32m
+kube-system   coredns-6955765f44-6b68z                   1/1     Running   0          32m
+kube-system   etcd-bo2-inf-k8l-081                       1/1     Running   0          32m
+kube-system   etcd-bo2-inf-k8l-082                       1/1     Running   0          31m
+kube-system   kube-apiserver-bo2-inf-k8l-081             1/1     Running   0          32m
+kube-system   kube-apiserver-bo2-inf-k8l-082             1/1     Running   0          31m
+kube-system   kube-controller-manager-bo2-inf-k8l-081    1/1     Running   1          32m
+kube-system   kube-controller-manager-bo2-inf-k8l-082    1/1     Running   0          31m
+kube-system   kube-proxy-465d6                           1/1     Running   0          32m
+kube-system   kube-proxy-ds5qp                           1/1     Running   0          31m
+kube-system   kube-proxy-qd5tr                           1/1     Running   0          27m
+kube-system   kube-proxy-xfv9f                           1/1     Running   0          28m
+kube-system   kube-scheduler-bo2-inf-k8l-081             1/1     Running   1          32m
+kube-system   kube-scheduler-bo2-inf-k8l-082             1/1     Running   0          31m
+
+- Find the IP address of the API server running on the master node
+
+- Examine the logs of the cluster networking pods and provide the output
+kubectl logs calico-node-wdkng --namespace=kube-system
+- Examine the logs of the cluster etcd pod and provide the output
+Same
+- Find the label applied to the etcd pod on one of the masters. (One should suffice)
+
+-------------------------------------------------------------
+-  Create a YAML file Pod Containing Two simple containers  -
+-------------------------------------------------------------
+- Create a Pod with the name Elie that contains two Containers: 
++ First Container should have the following specs: 
+- Nginx docker image
+- A shared valume named html mounted to the directory /usr/share/nginx/html
+- Specify that this container should listen on Port 80 
+
++ Second Container should have the following specs: 
+- Debian docker image
+- A shared volume named html (Same as container one) mounted to directory /etc/html 
+- Runs a bash script that will run every day and curl the page http://wttr.in/montreal to the /etc/html/index.html
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: elie-123
+spec:
+  volumes:
+  - name: html
+    emptyDir: {}
+  containers:
+  - name: nginxcontainer-123
+    image: nginx
+    volumeMounts:
+    - name: html
+      mountPath: /usr/share/nginx/html
+  - name: debiancontainer-123
+    image: tutum/curl
+    volumeMounts:
+    - name: html
+      mountPath: /etc/html
+    command: ["/bin/sh", "-c"]
+    args:
+      - while true; do
+          curl http://wttr.in/montreal >> /etc/html/index.html;
+          sleep 10000;
+        done
+
+--------------------------------------
+-  Run the Pod and try to access it  -
+--------------------------------------
+- Try to run the pods and solve any error in YAML if any
+Curl is not installed on the debian image. Need to manually create the image locally and then run it as follows: 
+
+- Check if the pods is running healthy and get all details about it
+kubectl exec elie-123 -c debiancontainer-123 -- cat /etc/html/index.html
+
+
+- Get some logs from each of the container of that pod if any
+$ kubectl get pods -o wide
+NAME       READY   STATUS    RESTARTS   AGE   IP                NODE              NOMINATED NODE   READINESS GATES
+elie-123   2/2     Running   1          20m   192.168.137.134   bo2-inf-k8l-083   <none>           <none>
+
+$ kubectl logs elie-123 -c debiancontainer-123
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  8852  100  8852    0     0  11754      0 --:--:-- --:--:-- --:--:-- 11755
+
+kubectl describe pods elie-123
+
+---------------------------------
+-  Delete the pod and clean up  -
+---------------------------------
+- Delete the pod and make sure it is deleted by providing output.
+kubectl delete pod elie-123
+kubectl get pods 
+
+---------------------------------
+-  Learn about the busybox pod  -
+---------------------------------
+- Read and find out about busybox docker image and learn about it's usage and intentions.
+
+-------------------------------------------------
+-  Deploy a simple Elie service to the Cluster  -
+-------------------------------------------------
+- Create a deployment of the same Elie (two containers as before) service with four replicas.
+- Make sure the deployment is up in the cluster and provide output
+- Create a service called ElieService to access the Elie deployment with the following specs: 
++ Listening on Port 8080
++ Access the backend port 80
+
+----------------------------------
+-  Verify using the BusyBox Pod  -
+----------------------------------
+- Create a busybox pod.
+- Uerify that you can access the Elie service  from a busybox testing pod.
+- Perform a DNS query to the ElieService using the busybox and record the output of the DNS A record..
+
+--------------------------------
+-  Scale the Elie deployement  -
+--------------------------------
+- Scale the Elie deployment from four to six 
+- Inspect the pods and provide the output.
+
+------------------------------------------------------
+-  Deploy a Microservice Application on the Cluster  -
+------------------------------------------------------
+- Check out the following link to learn about the sample application architecture: 
+https://github.com/instana/robot-shop/
+- Clone the following repo to the jumpbox
+- Since we have another application running on the default namespace, it is a good idea to create a separate namespace for this robotapp:
+- Deploy the app on the cluster. 
+- Check the status of the application and examine the pods. Provide the output of your examination
+
+--------------------------
+-  Taint and Toleration  -
+--------------------------
+- Read about the Taint and Tolerations:
+https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/#example-use-cases
+- List the taints of each worker and provide the output
+- Apply a taint to the Worker1  with the keyvalue of cpu:veryslow and with effect of NoSchedule.
+- List the taints of that worker and provide the output
+- Deploy the Elie2 deployement (with the two container inside done previously) with 3 replicas
+- List the pods to which nodes they are deployed to and provide the output
+- Delete the Elie2 deployment and provide the output that it is deleted. 
+- Deploy the Elie2 deployment with the added toleration of cpu:veryslow and the effect of NoSchedule.
+- List the pods to which nodes they are deployed to and provide the output
+- Remove the taint from Worker1 
+- List the taints of that worker and provide the output.
+
+-------------------------------------------------------
+-  Draining Worker1 and Removing it from the Cluster -
+-------------------------------------------------------
+
+- Review the nodes status and verify that they are working.
+- List the pods of all namespaces and look on to which nodes they are running on. (Provide the output)
+- Drain Worker1 from the cluster safely.
+- Verify that the Worker1 is being drained.
+- List the pods of all namespaces and make sure that none is running on Worker 1. (Provide the output)
+- Remove Worker1 from the Cluster and make sure it removed (Provide the output) 
+
+--------------------------------------
+-  Readding Worker1 to the Cluster   -
+--------------------------------------
+- List the nodes in the Cluster.
+- Create a token to add the Worker1 to the cluster again.
+- Verify that it's been added successfully'
+
+-------------------------------------------------------
+-  Draining Master1 and Removing it from the Cluster  -
+-------------------------------------------------------
+- Review the nodes status and verify that they are working.
+- List the pods of all namespaces and look on to which nodes they are running on. (Provide the output)
+- Drain Master1 from the cluster safely.
+- Verify that the Master1 is being drained.
+- List the pods of all namespaces and make sure that none is running on Master1. (Provide the output)
+- Remove Master1 from the Cluster and make sure it removed (Provide the output) 
+
+--------------------------------------
+-  Readding Master1 to the Cluster   -
+--------------------------------------
+- List the nodes in the Cluster.
+- Create a token to add the Master1 to the cluster again.
+- Verify that it's been added successfully.
