@@ -2,6 +2,7 @@
 *  Common Commands  *
 *********************
 
+Get autocompletion settings			kubectl completion --help
 kubectl run shell command:			kubectl exec -it mytest -- ls -l /etc/hosts
 kubeconfig skip tls verification		skip-tls-verify.md
 Watch pods:					kubectl get pods -n wordpress --watch
