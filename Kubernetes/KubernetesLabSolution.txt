@@ -179,7 +179,7 @@ kubectl get pods
 -  Verify using the BusyBox Pod  -
 ----------------------------------
 - Create a busybox pod.
-- Uerify that you can access the Elie service  from a busybox testing pod.
+- Uerify that you can access the Elie service from a busybox testing pod.
 - Perform a DNS query to the ElieService using the busybox and record the output of the DNS A record..
 
 --------------------------------
