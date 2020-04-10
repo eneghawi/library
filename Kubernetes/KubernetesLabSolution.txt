@@ -165,12 +165,66 @@ kubectl get pods
 -  Learn about the busybox pod  -
 ---------------------------------
 - Read and find out about busybox docker image and learn about it's usage and intentions.
+kubectl run -i --tty busybox --image=busybox -- sh
+
+
+Getting information
+kubectl describe pod/busybox-6cd57fd969-nnnc7 -n default
+
+Connect and disconnect to it:
+kubectl exec -t -i pod/busybox-6cd57fd969-nnnc7 sh 
 
 -------------------------------------------------
 -  Deploy a simple Elie service to the Cluster  -
 -------------------------------------------------
 - Create a deployment of the same Elie (two containers as before) service with four replicas.
+
+kubectl apply -f deploy2.yml
+
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: elie-withreplicas
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      tier: elie-withreplicas
+  template:
+    metadata:
+      labels:
+        tier: elie-withreplicas
+    spec:
+      volumes:
+      - name: html
+        emptyDir: {}
+      containers:
+      - name: nginxcontainer-123
+        image: nginx
+        volumeMounts:
+        - name: html
+          mountPath: /usr/share/nginx/html
+      - name: debiancontainer-123
+        image: tutum/curl
+        volumeMounts:
+        - name: html
+          mountPath: /etc/html
+        command: ["/bin/sh", "-c"]
+        args:
+          - while true; do
+              curl http://wttr.in/montreal >> /etc/html/index.html;
+              sleep 10000;
+            done
+
 - Make sure the deployment is up in the cluster and provide output
+$kubectl get pods -o wide
+NAME                       READY   STATUS    RESTARTS   AGE   IP                NODE              NOMINATED NODE   READINESS GATES
+busybox-6cd57fd969-gl2pl   1/1     Running   0          11m   192.168.137.175   bo2-inf-k8l-083   <none>           <none>
+elie-123                   2/2     Running   0          11m   192.168.137.174   bo2-inf-k8l-083   <none>           <none>
+elie-withreplicas-drb8z    2/2     Running   0          67s   192.168.137.177   bo2-inf-k8l-083   <none>           <none>
+elie-withreplicas-frt57    2/2     Running   0          67s   192.168.137.176   bo2-inf-k8l-083   <none>           <none>
+elie-withreplicas-zmv4p    2/2     Running   0          67s   192.168.30.123    bo2-inf-k8l-084   <none>           <none>
+
 - Create a service called ElieService to access the Elie deployment with the following specs: 
 + Listening on Port 8080
 + Access the backend port 80
@@ -185,8 +239,26 @@ kubectl get pods
 --------------------------------
 -  Scale the Elie deployement  -
 --------------------------------
+NAME              READY   UP-TO-DATE   AVAILABLE   AGE
+busybox           1/1     1            1           115m
+elie-deployment   3/3     3            3           31s
+
 - Scale the Elie deployment from four to six 
 - Inspect the pods and provide the output.
+
+$ kubectl scale --replicas=6 deployment/elie-deployment
+deployment.apps/elie-deployment scaled
+
+$ kubectl get deployment
+NAME              READY   UP-TO-DATE   AVAILABLE   AGE
+busybox           1/1     1            1           116m
+elie-deployment   5/6     6            5           2m
+
+$ kubectl get deployment
+NAME              READY   UP-TO-DATE   AVAILABLE   AGE
+busybox           1/1     1            1           116m
+elie-deployment   6/6     6            6           2m1s
+
 
 ------------------------------------------------------
 -  Deploy a Microservice Application on the Cluster  -
@@ -204,47 +276,398 @@ https://github.com/instana/robot-shop/
 - Read about the Taint and Tolerations:
 https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/#example-use-cases
 - List the taints of each worker and provide the output
+kubectl get nodes -o json | jq ".items[]|{name:.metadata.name, taints:.spec.taints}"
 - Apply a taint to the Worker1  with the keyvalue of cpu:veryslow and with effect of NoSchedule.
+$ kubectl taint nodes bo2-inf-k8l-083 cpu=veryslow:NoSchedule
+node/bo2-inf-k8l-083 tainted
 - List the taints of that worker and provide the output
+
+i521907@C02Z842ELVDL:~$ kubectl get nodes -o json | jq ".items[]|{name:.metadata.name, taints:.spec.taints}"
+{
+  "name": "bo2-inf-k8l-081",
+  "taints": [
+    {
+      "effect": "NoSchedule",
+      "key": "node-role.kubernetes.io/master"
+    }
+  ]
+}
+{
+  "name": "bo2-inf-k8l-082",
+  "taints": [
+    {
+      "effect": "NoSchedule",
+      "key": "node-role.kubernetes.io/master"
+    }
+  ]
+}
+{
+  "name": "bo2-inf-k8l-083",
+  "taints": [
+    {
+      "effect": "NoSchedule",
+      "key": "cpu",
+      "value": "veryslow"
+    }
+  ]
+}
+{
+  "name": "bo2-inf-k8l-084",
+  "taints": null
+}
 - Deploy the Elie2 deployement (with the two container inside done previously) with 3 replicas
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elie-notaint
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      tier: elie-notaint
+  template:
+    metadata:
+      labels:
+        tier: elie-notaint
+    spec:
+      volumes:
+      - name: html
+        emptyDir: {}
+      containers:
+      - name: nginxcontainer-123
+        image: nginx
+        volumeMounts:
+        - name: html
+          mountPath: /usr/share/nginx/html
+      - name: debiancontainer-123
+        image: tutum/curl
+        volumeMounts:
+        - name: html
+          mountPath: /etc/html
+        command: ["/bin/sh", "-c"]
+        args:
+          - while true; do
+              curl http://wttr.in/montreal >> /etc/html/index.html;
+              sleep 10000;
+            done
+
+$kubectl apply -f deploy3.yml
+deployment.apps/elie-notaint created
 - List the pods to which nodes they are deployed to and provide the output
+elie-notaint-5f6484bbc5-fw9m4      2/2     Running   0          14s     192.168.30.70     bo2-inf-k8l-084   <none>           <none>
+elie-notaint-5f6484bbc5-gl5bh      2/2     Running   0          14s     192.168.30.127    bo2-inf-k8l-084   <none>           <none>
+elie-notaint-5f6484bbc5-v6q9l      2/2     Running   0          14s     192.168.30.68     bo2-inf-k8l-084   <none>           <none>
 - Delete the Elie2 deployment and provide the output that it is deleted. 
+$ kubectl delete deployment elie-notaint
+deployment.apps "elie-notaint" deleted
 - Deploy the Elie2 deployment with the added toleration of cpu:veryslow and the effect of NoSchedule.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elie-violation
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      tier: elie-violation
+  template:
+    metadata:
+      labels:
+        tier: elie-violation
+    spec:
+      tolerations:
+      - key: "cpu"
+        operator: "Exists"
+        effect: "NoSchedule"
+      volumes:
+      - name: html
+        emptyDir: {}
+      containers:
+      - name: nginxcontainer-123
+        image: nginx
+        volumeMounts:
+        - name: html
+          mountPath: /usr/share/nginx/html
+      - name: debiancontainer-123
+        image: tutum/curl
+        volumeMounts:
+        - name: html
+          mountPath: /etc/html
+        command: ["/bin/sh", "-c"]
+        args:
+          - while true; do
+              curl http://wttr.in/montreal >> /etc/html/index.html;
+              sleep 10000;
+            done
+
 - List the pods to which nodes they are deployed to and provide the output
+elie-violation-57b76f6b94-c6zcf    2/2     Running   0          2m5s    192.168.30.73     bo2-inf-k8l-084   <none>           <none>
+elie-violation-57b76f6b94-ccv7b    2/2     Running   0          2m5s    192.168.30.74     bo2-inf-k8l-084   <none>           <none>
+elie-violation-57b76f6b94-v9nmj    2/2     Running   0          2m5s    192.168.137.181   bo2-inf-k8l-083   <none>           <none>
 - Remove the taint from Worker1 
+$ kubectl taint nodes bo2-inf-k8l-083 cpu:NoSchedule-
+node/bo2-inf-k8l-083 untainted
 - List the taints of that worker and provide the output.
+{
+  "name": "bo2-inf-k8l-083",
+  "taints": null
+}
 
 -------------------------------------------------------
 -  Draining Worker1 and Removing it from the Cluster -
 -------------------------------------------------------
 
 - Review the nodes status and verify that they are working.
+$kubectl get nodes
+NAME              STATUS   ROLES    AGE   VERSION
+bo2-inf-k8l-081   Ready    master   29h   v1.17.3
+bo2-inf-k8l-082   Ready    master   29h   v1.17.3
+bo2-inf-k8l-083   Ready    <none>   29h   v1.17.3
+bo2-inf-k8l-084   Ready    <none>   29h   v1.17.3
 - List the pods of all namespaces and look on to which nodes they are running on. (Provide the output)
+$ kubectl get pods -A -o wide
+NAMESPACE     NAME                                       READY   STATUS    RESTARTS   AGE     IP                NODE              NOMINATED NODE   READINESS GATES
+default       busybox-6cd57fd969-gl2pl                   1/1     Running   0          8h      192.168.137.175   bo2-inf-k8l-083   <none>           <none>
+default       elie-123                                   2/2     Running   0          8h      192.168.137.174   bo2-inf-k8l-083   <none>           <none>
+default       elie-deployment-6bc6847b8f-4jdqn           2/2     Running   0          6h26m   192.168.137.180   bo2-inf-k8l-083   <none>           <none>
+default       elie-deployment-6bc6847b8f-8cmfh           2/2     Running   0          6h28m   192.168.30.124    bo2-inf-k8l-084   <none>           <none>
+default       elie-deployment-6bc6847b8f-c5lfs           2/2     Running   0          6h26m   192.168.137.179   bo2-inf-k8l-083   <none>           <none>
+default       elie-deployment-6bc6847b8f-kv998           2/2     Running   0          6h28m   192.168.137.178   bo2-inf-k8l-083   <none>           <none>
+default       elie-deployment-6bc6847b8f-rgc4j           2/2     Running   0          6h26m   192.168.30.126    bo2-inf-k8l-084   <none>           <none>
+default       elie-deployment-6bc6847b8f-w2zsc           2/2     Running   0          6h28m   192.168.30.125    bo2-inf-k8l-084   <none>           <none>
+default       elie-violation-57b76f6b94-c6zcf            2/2     Running   0          8m38s   192.168.30.73     bo2-inf-k8l-084   <none>           <none>
+default       elie-violation-57b76f6b94-ccv7b            2/2     Running   0          8m38s   192.168.30.74     bo2-inf-k8l-084   <none>           <none>
+default       elie-violation-57b76f6b94-v9nmj            2/2     Running   0          8m38s   192.168.137.181   bo2-inf-k8l-083   <none>           <none>
+default       elie-withreplicas-drb8z                    2/2     Running   0          8h      192.168.137.177   bo2-inf-k8l-083   <none>           <none>
+default       elie-withreplicas-frt57                    2/2     Running   0          8h      192.168.137.176   bo2-inf-k8l-083   <none>           <none>
+default       elie-withreplicas-zmv4p                    2/2     Running   0          8h      192.168.30.123    bo2-inf-k8l-084   <none>           <none>
+kube-system   calico-kube-controllers-5b644bc49c-g664j   1/1     Running   0          38h     192.168.30.66     bo2-inf-k8l-084   <none>           <none>
+kube-system   calico-node-b2twh                          1/1     Running   0          38h     10.14.247.84      bo2-inf-k8l-084   <none>           <none>
+kube-system   calico-node-nthpx                          1/1     Running   0          38h     10.14.247.83      bo2-inf-k8l-083   <none>           <none>
+kube-system   calico-node-tq7m2                          1/1     Running   0          38h     10.14.247.82      bo2-inf-k8l-082   <none>           <none>
+kube-system   calico-node-wdkng                          1/1     Running   0          38h     10.14.247.81      bo2-inf-k8l-081   <none>           <none>
+kube-system   coredns-6955765f44-2bfs5                   1/1     Running   1          38h     192.168.30.67     bo2-inf-k8l-084   <none>           <none>
+kube-system   coredns-6955765f44-6b68z                   1/1     Running   0          38h     192.168.30.65     bo2-inf-k8l-084   <none>           <none>
+kube-system   etcd-bo2-inf-k8l-081                       1/1     Running   0          38h     10.14.247.81      bo2-inf-k8l-081   <none>           <none>
+kube-system   etcd-bo2-inf-k8l-082                       1/1     Running   0          38h     10.14.247.82      bo2-inf-k8l-082   <none>           <none>
+kube-system   kube-apiserver-bo2-inf-k8l-081             1/1     Running   0          38h     10.14.247.81      bo2-inf-k8l-081   <none>           <none>
+kube-system   kube-apiserver-bo2-inf-k8l-082             1/1     Running   0          38h     10.14.247.82      bo2-inf-k8l-082   <none>           <none>
+kube-system   kube-controller-manager-bo2-inf-k8l-081    1/1     Running   2          38h     10.14.247.81      bo2-inf-k8l-081   <none>           <none>
+kube-system   kube-controller-manager-bo2-inf-k8l-082    1/1     Running   1          38h     10.14.247.82      bo2-inf-k8l-082   <none>           <none>
+kube-system   kube-proxy-465d6                           1/1     Running   0          38h     10.14.247.81      bo2-inf-k8l-081   <none>           <none>
+kube-system   kube-proxy-ds5qp                           1/1     Running   0          38h     10.14.247.82      bo2-inf-k8l-082   <none>           <none>
+kube-system   kube-proxy-qd5tr                           1/1     Running   0          38h     10.14.247.84      bo2-inf-k8l-084   <none>           <none>
+kube-system   kube-proxy-xfv9f                           1/1     Running   0          38h     10.14.247.83      bo2-inf-k8l-083   <none>           <none>
+kube-system   kube-scheduler-bo2-inf-k8l-081             1/1     Running   1          38h     10.14.247.81      bo2-inf-k8l-081   <none>           <none>
+kube-system   kube-scheduler-bo2-inf-k8l-082             1/1     Running   1          38h     10.14.247.82      bo2-inf-k8l-082   <none>           <none>
+
 - Drain Worker1 from the cluster safely.
+$kubectl drain bo2-inf-k8l-083 --delete-local-data --ignore-daemonsets --force
+
 - Verify that the Worker1 is being drained.
+$ kubectl get nodes
+NAME              STATUS                     ROLES    AGE   VERSION
+bo2-inf-k8l-081   Ready                      master   39h   v1.17.3
+bo2-inf-k8l-082   Ready                      master   39h   v1.17.3
+bo2-inf-k8l-083   Ready,SchedulingDisabled   <none>   39h   v1.17.3
+bo2-inf-k8l-084   Ready                      <none>   39h   v1.17.3
+
 - List the pods of all namespaces and make sure that none is running on Worker 1. (Provide the output)
+NAMESPACE     NAME                                       READY   STATUS    RESTARTS   AGE     IP               NODE              NOMINATED NODE   READINESS GATES
+default       busybox-6cd57fd969-w8xkx                   1/1     Running   0          87s     192.168.30.80    bo2-inf-k8l-084   <none>           <none>
+default       elie-deployment-6bc6847b8f-4vkxl           2/2     Running   0          87s     192.168.30.78    bo2-inf-k8l-084   <none>           <none>
+default       elie-deployment-6bc6847b8f-8cmfh           2/2     Running   0          7h27m   192.168.30.124   bo2-inf-k8l-084   <none>           <none>
+default       elie-deployment-6bc6847b8f-hdcbx           2/2     Running   0          87s     192.168.30.84    bo2-inf-k8l-084   <none>           <none>
+default       elie-deployment-6bc6847b8f-rgc4j           2/2     Running   0          7h26m   192.168.30.126   bo2-inf-k8l-084   <none>           <none>
+default       elie-deployment-6bc6847b8f-vrt98           2/2     Running   0          87s     192.168.30.79    bo2-inf-k8l-084   <none>           <none>
+default       elie-deployment-6bc6847b8f-w2zsc           2/2     Running   0          7h27m   192.168.30.125   bo2-inf-k8l-084   <none>           <none>
+default       elie-violation-57b76f6b94-c6zcf            2/2     Running   0          68m     192.168.30.73    bo2-inf-k8l-084   <none>           <none>
+default       elie-violation-57b76f6b94-ccv7b            2/2     Running   0          68m     192.168.30.74    bo2-inf-k8l-084   <none>           <none>
+default       elie-violation-57b76f6b94-jwnmx            2/2     Running   0          87s     192.168.30.76    bo2-inf-k8l-084   <none>           <none>
+default       elie-withreplicas-d6bvz                    2/2     Running   0          87s     192.168.30.77    bo2-inf-k8l-084   <none>           <none>
+default       elie-withreplicas-zj9t6                    2/2     Running   0          87s     192.168.30.75    bo2-inf-k8l-084   <none>           <none>
+default       elie-withreplicas-zmv4p                    2/2     Running   0          9h      192.168.30.123   bo2-inf-k8l-084   <none>           <none>
+kube-system   calico-kube-controllers-5b644bc49c-g664j   1/1     Running   0          39h     192.168.30.66    bo2-inf-k8l-084   <none>           <none>
+kube-system   calico-node-b2twh                          1/1     Running   0          39h     10.14.247.84     bo2-inf-k8l-084   <none>           <none>
+kube-system   calico-node-nthpx                          1/1     Running   0          39h     10.14.247.83     bo2-inf-k8l-083   <none>           <none>
+kube-system   calico-node-tq7m2                          1/1     Running   0          39h     10.14.247.82     bo2-inf-k8l-082   <none>           <none>
+kube-system   calico-node-wdkng                          1/1     Running   0          39h     10.14.247.81     bo2-inf-k8l-081   <none>           <none>
+kube-system   coredns-6955765f44-2bfs5                   1/1     Running   1          39h     192.168.30.67    bo2-inf-k8l-084   <none>           <none>
+kube-system   coredns-6955765f44-6b68z                   1/1     Running   0          39h     192.168.30.65    bo2-inf-k8l-084   <none>           <none>
+kube-system   etcd-bo2-inf-k8l-081                       1/1     Running   0          39h     10.14.247.81     bo2-inf-k8l-081   <none>           <none>
+kube-system   etcd-bo2-inf-k8l-082                       1/1     Running   0          39h     10.14.247.82     bo2-inf-k8l-082   <none>           <none>
+kube-system   kube-apiserver-bo2-inf-k8l-081             1/1     Running   0          39h     10.14.247.81     bo2-inf-k8l-081   <none>           <none>
+kube-system   kube-apiserver-bo2-inf-k8l-082             1/1     Running   0          39h     10.14.247.82     bo2-inf-k8l-082   <none>           <none>
+kube-system   kube-controller-manager-bo2-inf-k8l-081    1/1     Running   2          39h     10.14.247.81     bo2-inf-k8l-081   <none>           <none>
+kube-system   kube-controller-manager-bo2-inf-k8l-082    1/1     Running   1          39h     10.14.247.82     bo2-inf-k8l-082   <none>           <none>
+kube-system   kube-proxy-465d6                           1/1     Running   0          39h     10.14.247.81     bo2-inf-k8l-081   <none>           <none>
+kube-system   kube-proxy-ds5qp                           1/1     Running   0          39h     10.14.247.82     bo2-inf-k8l-082   <none>           <none>
+kube-system   kube-proxy-qd5tr                           1/1     Running   0          39h     10.14.247.84     bo2-inf-k8l-084   <none>           <none>
+kube-system   kube-proxy-xfv9f                           1/1     Running   0          39h     10.14.247.83     bo2-inf-k8l-083   <none>           <none>
+kube-system   kube-scheduler-bo2-inf-k8l-081             1/1     Running   1          39h     10.14.247.81     bo2-inf-k8l-081   <none>           <none>
+kube-system   kube-scheduler-bo2-inf-k8l-082             1/1     Running   1          39h     10.14.247.82     bo2-inf-k8l-082   <none>           <none>
 - Remove Worker1 from the Cluster and make sure it removed (Provide the output) 
+$ kubectl delete node bo2-inf-k8l-083
+node "bo2-inf-k8l-083" deleted
+$ kubectl get nodes
+NAME              STATUS   ROLES    AGE   VERSION
+bo2-inf-k8l-081   Ready    master   39h   v1.17.3
+bo2-inf-k8l-082   Ready    master   39h   v1.17.3
+bo2-inf-k8l-084   Ready    <none>   39h   v1.17.3
 
 --------------------------------------
 -  Readding Worker1 to the Cluster   -
 --------------------------------------
 - List the nodes in the Cluster.
 - Create a token to add the Worker1 to the cluster again.
+ON MASTER:
+$ sudo kubeadm token create --print-join-command
+W0312 11:37:57.217461    2450 validation.go:28] Cannot validate kube-proxy config - no validator is available
+W0312 11:37:57.217539    2450 validation.go:28] Cannot validate kubelet config - no validator is available
+kubeadm join 10.14.247.85:6443 --token iex2fx.80up2mble5otwopx     --discovery-token-ca-cert-hash sha256:d9d406ba57d5be41f94ddcc0bb3cc3fbb7c27d4316d0e9645711f4dab0e1fc7d
+
+ON WORKER1:
+
+$ sudo kubeadm reset
+[reset] WARNING: Changes made to this host by 'kubeadm init' or 'kubeadm join' will be reverted.
+[reset] Are you sure you want to proceed? [y/N]: y
+[preflight] Running pre-flight checks
+W0312 11:39:59.389103   27495 removeetcdmember.go:79] [reset] No kubeadm config, using etcd pod spec to get data directory
+[reset] No etcd config found. Assuming external etcd
+[reset] Please, manually reset etcd to prevent further issues
+[reset] Stopping the kubelet service
+[reset] Unmounting mounted directories in "/var/lib/kubelet"
+[reset] Deleting contents of config directories: [/etc/kubernetes/manifests /etc/kubernetes/pki]
+[reset] Deleting files: [/etc/kubernetes/admin.conf /etc/kubernetes/kubelet.conf /etc/kubernetes/bootstrap-kubelet.conf /etc/kubernetes/controller-manager.conf /etc/kubernetes/scheduler.conf]
+[reset] Deleting contents of stateful directories: [/var/lib/kubelet /var/lib/dockershim /var/run/kubernetes /var/lib/cni]
+
+The reset process does not clean CNI configuration. To do so, you must remove /etc/cni/net.d
+
+The reset process does not reset or clean up iptables rules or IPVS tables.
+If you wish to reset iptables, you must do so manually by using the "iptables" command.
+
+If your cluster was setup to utilize IPVS, run ipvsadm --clear (or similar)
+to reset your system's IPVS tables.
+
+The reset process does not clean your kubeconfig files and you must remove them manually.
+Please, check the contents of the $HOME/.kube/config file.
+
+$ sudo kubeadm join 10.14.247.85:6443 --token iex2fx.80up2mble5otwopx     --discovery-token-ca-cert-hash sha256:d9d406ba57d5be41f94ddcc0bb3cc3fbb7c27d4316d0e9645711f4dab0e1fc7d
+W0312 11:40:08.317301   27517 join.go:346] [preflight] WARNING: JoinControlPane.controlPlane settings will be ignored when control-plane flag is not set.
+[preflight] Running pre-flight checks
+[preflight] Reading configuration from the cluster...
+[preflight] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -oyaml'
+[kubelet-start] Downloading configuration for the kubelet from the "kubelet-config-1.17" ConfigMap in the kube-system namespace
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet-start] Starting the kubelet
+[kubelet-start] Waiting for the kubelet to perform the TLS Bootstrap...
+
+This node has joined the cluster:
+* Certificate signing request was sent to apiserver and a response was received.
+* The Kubelet was informed of the new secure connection details.
+
+Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
+
 - Verify that it's been added successfully'
+$ kubectl get nodes
+NAME              STATUS   ROLES    AGE   VERSION
+bo2-inf-k8l-081   Ready    master   39h   v1.17.3
+bo2-inf-k8l-082   Ready    master   39h   v1.17.3
+bo2-inf-k8l-083   Ready    <none>   20s   v1.17.3
+bo2-inf-k8l-084   Ready    <none>   39h   v1.17.3
 
 -------------------------------------------------------
 -  Draining Master1 and Removing it from the Cluster  -
 -------------------------------------------------------
 - Review the nodes status and verify that they are working.
+
+
 - List the pods of all namespaces and look on to which nodes they are running on. (Provide the output)
+$ kubectl get pods -A
+NAMESPACE     NAME                                       READY   STATUS    RESTARTS   AGE
+default       busybox-6cd57fd969-w8xkx                   1/1     Running   0          38m
+default       elie-123                                   2/2     Running   0          33m
+default       elie-deployment-6bc6847b8f-4vkxl           2/2     Running   0          38m
+default       elie-deployment-6bc6847b8f-8cmfh           2/2     Running   0          8h
+default       elie-deployment-6bc6847b8f-hdcbx           2/2     Running   0          38m
+default       elie-deployment-6bc6847b8f-rgc4j           2/2     Running   0          8h
+default       elie-deployment-6bc6847b8f-vrt98           2/2     Running   0          38m
+default       elie-deployment-6bc6847b8f-w2zsc           2/2     Running   0          8h
+default       elie-violation-57b76f6b94-c6zcf            2/2     Running   0          105m
+default       elie-violation-57b76f6b94-ccv7b            2/2     Running   0          105m
+default       elie-violation-57b76f6b94-jwnmx            2/2     Running   0          38m
+default       elie-withreplicas-d6bvz                    2/2     Running   0          38m
+default       elie-withreplicas-zj9t6                    2/2     Running   0          38m
+default       elie-withreplicas-zmv4p                    2/2     Running   0          9h
+kube-system   calico-kube-controllers-5b644bc49c-g664j   1/1     Running   0          40h
+kube-system   calico-node-b2twh                          1/1     Running   0          40h
+kube-system   calico-node-b9lf7                          1/1     Running   0          24m
+kube-system   calico-node-wdkng                          1/1     Running   0          40h
+kube-system   coredns-6955765f44-2bfs5                   1/1     Running   1          40h
+kube-system   coredns-6955765f44-6b68z                   1/1     Running   0          40h
+kube-system   etcd-bo2-inf-k8l-081                       1/1     Running   0          40h
+kube-system   kube-apiserver-bo2-inf-k8l-081             1/1     Running   0          40h
+kube-system   kube-controller-manager-bo2-inf-k8l-081    1/1     Running   2          40h
+kube-system   kube-proxy-465d6                           1/1     Running   0          40h
+kube-system   kube-proxy-bspdz                           1/1     Running   0          24m
+kube-system   kube-proxy-qd5tr                           1/1     Running   0          40h
+kube-system   kube-scheduler-bo2-inf-k8l-081             1/1     Running   1          40h
 - Drain Master1 from the cluster safely.
 - Verify that the Master1 is being drained.
 - List the pods of all namespaces and make sure that none is running on Master1. (Provide the output)
+$ kubectl drain bo2-inf-k8l-082 --ignore-daemonsets
+node/bo2-inf-k8l-082 already cordoned
+WARNING: ignoring DaemonSet-managed Pods: kube-system/calico-node-tq7m2, kube-system/kube-proxy-ds5qp
+node/bo2-inf-k8l-082 drained
+$ kubectl get nodes
+NAME              STATUS                     ROLES    AGE   VERSION
+bo2-inf-k8l-081   Ready                      master   39h   v1.17.3
+bo2-inf-k8l-082   Ready,SchedulingDisabled   master   39h   v1.17.3
+bo2-inf-k8l-083   Ready                      <none>   10m   v1.17.3
+bo2-inf-k8l-084   Ready                      <none>   39h   v1.17.3
+$ kubectl get nodes
+NAME              STATUS                     ROLES    AGE   VERSION
+bo2-inf-k8l-081   Ready                      master   39h   v1.17.3
+bo2-inf-k8l-082   Ready,SchedulingDisabled   master   39h   v1.17.3
+bo2-inf-k8l-083   Ready                      <none>   10m   v1.17.3
+bo2-inf-k8l-084   Ready                      <none>   39h   v1.17.3
 - Remove Master1 from the Cluster and make sure it removed (Provide the output) 
+$ kubectl delete node bo2-inf-k8l-082
+node "bo2-inf-k8l-082" deleted
+$ kubectl get nodes
+NAME              STATUS   ROLES    AGE   VERSION
+bo2-inf-k8l-081   Ready    master   39h   v1.17.3
+bo2-inf-k8l-083   Ready    <none>   11m   v1.17.3
+bo2-inf-k8l-084   Ready    <none>   39h   v1.17.3
+$ kubectl get nodes
+NAME              STATUS   ROLES    AGE   VERSION
+bo2-inf-k8l-081   Ready    master   40h   v1.17.3
+bo2-inf-k8l-083   Ready    <none>   21m   v1.17.3
+bo2-inf-k8l-084   Ready    <none>   39h   v1.17.3
 
 --------------------------------------
 -  Readding Master1 to the Cluster   -
 --------------------------------------
 - List the nodes in the Cluster.
 - Create a token to add the Master1 to the cluster again.
+
+$ sudo kubeadm init phase upload-certs --upload-certs
+[upload-certs] Storing the certificates in Secret "kubeadm-certs" in the "kube-system" Namespace
+[upload-certs] Using certificate key:
+590a74381ae433704b1376a2c6a54f1254f556658c774d8da7c66711128e5d8c
+
+
+$sudo kubeadm token create --print-join-command --certificate-key 590a74381ae433704b1376a2c6a54f1254f556658c774d8da7c66711128e5d8c
+
+kubeadm join 10.14.247.85:6443 --token 3xw1f9.wwi7snswkw5w48vj \
+    --discovery-token-ca-cert-hash sha256:d9d406ba57d5be41f94ddcc0bb3cc3fbb7c27d4316d0e9645711f4dab0e1fc7d \
+    --control-plane --certificate-key 590a74381ae433704b1376a2c6a54f1254f556658c774d8da7c66711128e5d8c
+
 - Verify that it's been added successfully.
+i521907@C02Z842ELVDL:~$ kubectl get nodes
+NAME              STATUS   ROLES    AGE     VERSION
+bo2-inf-k8l-081   Ready    master   40h     v1.17.3
+bo2-inf-k8l-082   Ready    master   4m56s   v1.17.3
+bo2-inf-k8l-083   Ready    <none>   43m     v1.17.3
+bo2-inf-k8l-084   Ready    <none>   40h     v1.17.3
